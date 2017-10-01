@@ -46,17 +46,16 @@
 			<artifactId>spring-boot-starter-batch-web</artifactId>
 			<version>1.4.0.RELEASE</version>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-maven-plugin</artifactId>
+			<version>1.5.7.RELEASE</version>
+			<type>jar</type>
+		</dependency>
 
 	</dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
+
 
 
 </project>
