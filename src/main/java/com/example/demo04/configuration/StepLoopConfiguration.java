@@ -41,7 +41,7 @@ public class StepLoopConfiguration {
         */
 //step loop
         List<Integer> stepTest = new ArrayList<>();
-        for(int i=0; i< 100; i++ ){
+        for(int i=0; i< 1000; i++ ){
             stepTest.add(i);
         }
         for (Integer date : stepTest) {

@@ -30,12 +30,12 @@ public class JobLauncherController {
 
     @RequestMapping("/test")
     public String handle() throws Exception {
-        for(int i=0; i< 100; i++) {
+//        for(int i=0; i< 100; i++) {
             JobParameters param = new JobParametersBuilder().addLong("timestamp", new Date().getTime()).toJobParameters();
             jobLauncher.run(job, param);
 //            jobLauncher.run(job, new JobParameters());
 
-        }
+ //       }
         return "Done!!!-!!!!!";
     }
 
