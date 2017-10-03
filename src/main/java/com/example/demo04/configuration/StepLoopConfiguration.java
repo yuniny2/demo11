@@ -74,7 +74,6 @@ public class StepLoopConfiguration {
     public JobLauncher jobLauncher(JobRepository jobRepository) {
         SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
         jobLauncher.setJobRepository(jobRepository);
-
         return jobLauncher;
     }
 
@@ -88,12 +87,12 @@ public class StepLoopConfiguration {
 //
 //        return registrar;
 //    }
-    @Bean
-    JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor(JobRegistry jobRegistry) {
-        JobRegistryBeanPostProcessor registrar = new JobRegistryBeanPostProcessor();
-        registrar.setJobRegistry(jobRegistry);
-        return registrar;
-    }
+//    @Bean
+//    JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor(JobRegistry jobRegistry) {
+//        JobRegistryBeanPostProcessor registrar = new JobRegistryBeanPostProcessor();
+//        registrar.setJobRegistry(jobRegistry);
+//        return registrar;
+//    }
 
 
     @Bean
@@ -123,14 +122,14 @@ public class StepLoopConfiguration {
         */
 //step loop
         List<Integer> stepTest = new ArrayList<>();
-        for(int i=0; i< 1000; i++ ){
+        for(int i=0; i<= 1000; i++ ){
             stepTest.add(i);
         }
         for (Integer date : stepTest) {
             steps.add(createStep(date));
         }
 
-        return jobBuilderFactory.get("executeMyJob112")
+        return jobBuilderFactory.get("executeMyJob121")
                 .start(createParallelFlow(steps))
                 .end()
                 .build();
