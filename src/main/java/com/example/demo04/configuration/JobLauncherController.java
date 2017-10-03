@@ -47,7 +47,7 @@ public class JobLauncherController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void launch(@RequestParam("name") String name) throws Exception {
         try {
-        Job job = jobRegistry.getJob("executeMyJob11");
+        Job job = jobRegistry.getJob(name);
         JobParameters jobParameters = new JobParameters();
         jobLauncher.run(job, jobParameters);
         } catch (Exception e) {
