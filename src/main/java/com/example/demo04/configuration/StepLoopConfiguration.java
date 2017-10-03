@@ -3,16 +3,25 @@ package com.example.demo04.configuration;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepContribution;
+import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
+import org.springframework.batch.core.converter.DefaultJobParametersConverter;
+import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.job.builder.FlowBuilder;
 import org.springframework.batch.core.job.flow.Flow;
 import org.springframework.batch.core.job.flow.support.SimpleFlow;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.JobOperator;
+import org.springframework.batch.core.launch.support.SimpleJobOperator;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -29,6 +38,47 @@ public class StepLoopConfiguration {
 
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
+
+    @Autowired
+    public JobExplorer jobExplorer;
+
+    @Autowired
+    public JobRepository jobRepository;
+
+    @Autowired
+    public JobRegistry jobRegistry;
+
+    @Autowired
+    public JobLauncher jobLauncher;
+
+    private ApplicationContext applicationContext;
+
+    @Bean
+    public JobRegistryBeanPostProcessor jobRegistrar() throws Exception {
+        JobRegistryBeanPostProcessor registrar = new JobRegistryBeanPostProcessor();
+
+        registrar.setJobRegistry(this.jobRegistry);
+        registrar.setBeanFactory(this.applicationContext.getAutowireCapableBeanFactory());
+        registrar.afterPropertiesSet();
+
+        return registrar;
+    }
+
+    @Bean
+    public JobOperator jobOperator() throws Exception {
+        SimpleJobOperator simpleJobOperator = new SimpleJobOperator();
+
+        simpleJobOperator.setJobLauncher(this.jobLauncher);
+        simpleJobOperator.setJobParametersConverter(new DefaultJobParametersConverter());
+        simpleJobOperator.setJobRepository(this.jobRepository);
+        simpleJobOperator.setJobExplorer(this.jobExplorer);
+        simpleJobOperator.setJobRegistry(this.jobRegistry);
+
+        simpleJobOperator.afterPropertiesSet();
+
+        return simpleJobOperator;
+    }
+
 
     @Bean(name="JOB3")
     public Job executeMyJob() {

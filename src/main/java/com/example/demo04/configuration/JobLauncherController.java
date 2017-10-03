@@ -1,6 +1,7 @@
 package com.example.demo04.configuration;
 
 import org.springframework.batch.core.*;
+import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.JobOperator;
@@ -23,6 +24,9 @@ public class JobLauncherController {
     Job job;
 
     @Autowired
+    private JobRegistry jobRegistry;
+
+    @Autowired
     private JobOperator jobOperator;
 
     @Autowired
@@ -31,9 +35,9 @@ public class JobLauncherController {
     @RequestMapping("/test")
     public String handle() throws Exception {
 //        for(int i=0; i< 100; i++) {
-            JobParameters param = new JobParametersBuilder().addLong("timestamp", new Date().getTime()).toJobParameters();
-            jobLauncher.run(job, param);
-//            jobLauncher.run(job, new JobParameters());
+//            JobParameters param = new JobParametersBuilder().addLong("timestamp", new Date().getTime()).toJobParameters();
+//            jobLauncher.run(job, param);
+            jobLauncher.run(job, new JobParameters());
 
  //       }
         return "Done!!!-!!!!!";
@@ -41,8 +45,15 @@ public class JobLauncherController {
 
     @RequestMapping(value = "/", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public long launch(@RequestParam("name") String name) throws Exception {
-        return this.jobOperator.start("job", String.format("name=%s", name));
+    public void launch(@RequestParam("name") String name) throws Exception {
+        try {
+        Job job = jobRegistry.getJob("executeMyJob11");
+        JobParameters jobParameters = new JobParameters();
+        jobLauncher.run(job, jobParameters);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Something went wrong");
+        }
     }
 
 //    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
