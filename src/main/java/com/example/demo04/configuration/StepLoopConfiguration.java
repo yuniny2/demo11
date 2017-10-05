@@ -82,7 +82,7 @@ public class StepLoopConfiguration {
        return names;
     }
 
-    @Bean
+    @Bean(name="STEP_REGISTORY")
     public StepRegistry setStepRegistry() {
         StepRegistry stepRegistry = new MapStepRegistry();
         final Map<String, Step> jobSteps = new HashMap<>();
@@ -103,7 +103,7 @@ public class StepLoopConfiguration {
         registrar.setJobRegistry(jobRegistry);
         return registrar;
     }
-    @Bean
+    @Bean(name="JOB_REPOSOTORY")
     public JobRepository jobRepository() {
         MapJobRepositoryFactoryBean factoryBean = new MapJobRepositoryFactoryBean(new ResourcelessTransactionManager());
         try {
@@ -114,7 +114,7 @@ public class StepLoopConfiguration {
             return null;
         }
     }
-    @Bean(name="JOBLAUNCHER")
+    @Bean(name="JOB_LAUNCHER")
     public JobLauncher jobLauncher(JobRepository jobRepository) {
 
         SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
@@ -123,7 +123,7 @@ public class StepLoopConfiguration {
         jobLauncher.setTaskExecutor(taskExecutor);
         return jobLauncher;
     }
-    @Bean
+    @Bean(name="JOB_OPERATOR")
     public JobOperator jobOperator() throws Exception {
         SimpleJobOperator simpleJobOperator = new SimpleJobOperator();
         simpleJobOperator.setJobLauncher(this.jobLauncher);

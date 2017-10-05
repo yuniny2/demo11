@@ -28,20 +28,20 @@ import static org.junit.Assert.assertEquals;
 @RestController
 public class JobLauncherController {
 
-    @Autowired @Qualifier("JOBLAUNCHER")
+    @Autowired @Qualifier("JOB_LAUNCHER")
     JobLauncher jobLauncher;
     @Autowired @Qualifier("JOB3")
     Job job;
     @Autowired
     private JobRegistry jobRegistry;
-    @Autowired
+    @Autowired @Qualifier("STEP_REGISTORY")
     private StepRegistry stepRegistry;
-    @Autowired
+    @Autowired @Qualifier("JOB_OPERATOR")
     private JobOperator jobOperator;
     @Autowired
     private JobExplorer jobExplorer;
 
-    @Autowired
+    @Autowired @Qualifier("JOB_REPOSOTORY")
     public JobRepository jobRepository;
 
     @RequestMapping("/reload")
@@ -64,9 +64,7 @@ public class JobLauncherController {
             //실행중인 job은 해당 이름에 end_time null 인경우 이다.
          Set<JobExecution> executions = jobExplorer.findRunningJobExecutions(jobName);
           if(executions.size() > 0 ) return "Already Job is running";
-//         for(JobExecution execution : executions) {
-//             if(execution.getStatus().equals("COMPLETED")) return "Already Job is running";
-//         }
+
         //Configuration에 JobResisty 를 등록 한후 사용
         Job job = jobRegistry.getJob(jobName);
         //JobParameters jobParameters = new JobParameters();
