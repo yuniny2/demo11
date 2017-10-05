@@ -73,7 +73,7 @@ public class StepLoopConfiguration {
     List<Map<String, Object>> names;
     List<Step> steps = new ArrayList<>();
     private final ConcurrentMap<String, Map<String, Step>> map = new ConcurrentHashMap<String, Map<String, Step>>();
-    final String jobName = "executeMyJob137";
+    final String jobName = "executeMyJob138";
 
     @PostConstruct
     public List<Map<String, Object>> init() {
@@ -82,7 +82,7 @@ public class StepLoopConfiguration {
        return names;
     }
 
-    @Bean(name="STEP_REGISTORY")
+    @Bean//(name="STEP_REGISTORY")
     public StepRegistry setStepRegistry() {
         StepRegistry stepRegistry = new MapStepRegistry();
         final Map<String, Step> jobSteps = new HashMap<>();
@@ -114,16 +114,17 @@ public class StepLoopConfiguration {
             return null;
         }
     }
-    @Bean(name="JOB_LAUNCHER")
+    @Bean//(name="JOB_LAUNCHER")
     public JobLauncher jobLauncher(JobRepository jobRepository) {
 
         SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
-        TaskExecutor taskExecutor = new SyncTaskExecutor();
+       // TaskExecutor taskExecutor = new SyncTaskExecutor();
+        TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
         jobLauncher.setJobRepository(jobRepository);
         jobLauncher.setTaskExecutor(taskExecutor);
         return jobLauncher;
     }
-    @Bean(name="JOB_OPERATOR")
+    @Bean//(name="JOB_OPERATOR")
     public JobOperator jobOperator() throws Exception {
         SimpleJobOperator simpleJobOperator = new SimpleJobOperator();
         simpleJobOperator.setJobLauncher(this.jobLauncher);

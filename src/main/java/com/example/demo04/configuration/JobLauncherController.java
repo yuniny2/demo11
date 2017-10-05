@@ -28,20 +28,20 @@ import static org.junit.Assert.assertEquals;
 @RestController
 public class JobLauncherController {
 
-    @Autowired @Qualifier("JOB_LAUNCHER")
+    @Autowired //@Qualifier("JOB_LAUNCHER")
     JobLauncher jobLauncher;
     @Autowired @Qualifier("JOB3")
     Job job;
     @Autowired
     private JobRegistry jobRegistry;
-    @Autowired @Qualifier("STEP_REGISTORY")
+    @Autowired //@Qualifier("STEP_REGISTORY")
     private StepRegistry stepRegistry;
-    @Autowired @Qualifier("JOB_OPERATOR")
+    @Autowired //@Qualifier("JOB_OPERATOR")
     private JobOperator jobOperator;
     @Autowired
     private JobExplorer jobExplorer;
 
-    @Autowired @Qualifier("JOB_REPOSOTORY")
+    @Autowired //@Qualifier("JOB_REPOSOTORY")
     public JobRepository jobRepository;
 
     @RequestMapping("/reload")
@@ -50,8 +50,6 @@ public class JobLauncherController {
         //StepRegistry stepRegistry = new MapStepRegistry();
         DefaultJobLoader jobLoader = new DefaultJobLoader(jobRegistry, stepRegistry);
         GenericApplicationContextFactory factory = new GenericApplicationContextFactory(StepLoopConfiguration.class);
-        //jobLoader.load(factory);
-        //jobLoader.clear();
         jobLoader.reload(factory);
         return "RELOAD SUCCESS";
     }
