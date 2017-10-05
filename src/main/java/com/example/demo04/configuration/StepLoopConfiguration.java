@@ -1,11 +1,15 @@
 package com.example.demo04.configuration;
 
 import org.springframework.batch.core.*;
+import org.springframework.batch.core.configuration.DuplicateJobException;
 import org.springframework.batch.core.configuration.JobRegistry;
+import org.springframework.batch.core.configuration.StepRegistry;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.configuration.support.DefaultJobLoader;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
+import org.springframework.batch.core.configuration.support.MapStepRegistry;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.job.builder.FlowBuilder;
@@ -25,39 +29,74 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.batch.support.transaction.ResourcelessTransactionManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 @Configuration
 @EnableBatchProcessing
+@Import(value=DataSourceConfiguration.class)
 public class StepLoopConfiguration {
     @Autowired
     private JobBuilderFactory jobBuilderFactory;
-
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
-
     @Autowired
     public JobExplorer jobExplorer;
-
     @Autowired
     public JobRepository jobRepository;
-
     @Autowired
     public JobRegistry jobRegistry;
-
     @Autowired
     public JobLauncher jobLauncher;
+    @Autowired
+    @Qualifier("mainDataSource")
+    public DataSource dataSource;
 
-    private ApplicationContext applicationContext;
+    List<Map<String, Object>> names;
+    List<Step> steps = new ArrayList<>();
+    private final ConcurrentMap<String, Map<String, Step>> map = new ConcurrentHashMap<String, Map<String, Step>>();
+    final String jobName = "executeMyJob137";
 
+    @PostConstruct
+    public List<Map<String, Object>> init() {
+       JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+       names = jdbcTemplate.queryForList("select name from name ");
+       return names;
+    }
+
+    @Bean
+    public StepRegistry setStepRegistry() {
+        StepRegistry stepRegistry = new MapStepRegistry();
+        final Map<String, Step> jobSteps = new HashMap<>();
+        for (Step step : steps) {
+            jobSteps.put(step.getName(), step);
+        }
+        final Object previousValue = map.putIfAbsent(jobName, jobSteps);
+//        if (previousValue != null) {
+//            throw new DuplicateJobException("A job configuration with this name [ " + this.jobName
+//                    + "] was already registered");
+//        }
+        return stepRegistry;
+    }
+
+    @Bean
+    JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor(JobRegistry jobRegistry) {
+        JobRegistryBeanPostProcessor registrar = new JobRegistryBeanPostProcessor();
+        registrar.setJobRegistry(jobRegistry);
+        return registrar;
+    }
     @Bean
     public JobRepository jobRepository() {
         MapJobRepositoryFactoryBean factoryBean = new MapJobRepositoryFactoryBean(new ResourcelessTransactionManager());
@@ -69,78 +108,49 @@ public class StepLoopConfiguration {
             return null;
         }
     }
-
     @Bean
     public JobLauncher jobLauncher(JobRepository jobRepository) {
         SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
         jobLauncher.setJobRepository(jobRepository);
         return jobLauncher;
     }
-
-//    @Bean
-//    public JobRegistryBeanPostProcessor jobRegistrar() throws Exception {
-//        JobRegistryBeanPostProcessor registrar = new JobRegistryBeanPostProcessor();
-//
-//        registrar.setJobRegistry(this.jobRegistry);
-//        registrar.setBeanFactory(this.applicationContext.getAutowireCapableBeanFactory());
-//        registrar.afterPropertiesSet();
-//
-//        return registrar;
-//    }
-//    @Bean
-//    JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor(JobRegistry jobRegistry) {
-//        JobRegistryBeanPostProcessor registrar = new JobRegistryBeanPostProcessor();
-//        registrar.setJobRegistry(jobRegistry);
-//        return registrar;
-//    }
-
-
     @Bean
     public JobOperator jobOperator() throws Exception {
         SimpleJobOperator simpleJobOperator = new SimpleJobOperator();
-
         simpleJobOperator.setJobLauncher(this.jobLauncher);
         simpleJobOperator.setJobParametersConverter(new DefaultJobParametersConverter());
         simpleJobOperator.setJobRepository(this.jobRepository);
         simpleJobOperator.setJobExplorer(this.jobExplorer);
         simpleJobOperator.setJobRegistry(this.jobRegistry);
-
         simpleJobOperator.afterPropertiesSet();
-
         return simpleJobOperator;
     }
 
-
     @Bean(name="JOB3")
     public Job executeMyJob() {
-        List<Step> steps = new ArrayList<Step>();
-/*        String[] strs = {"1", "2", "3",};
-        List<String> dates = Arrays.asList(strs);
-        for (String date : dates) {
-            steps.add(createStep(date));
-        }
-        */
-//step loop
         List<Integer> stepTest = new ArrayList<>();
-        for(int i=0; i<= 1000; i++ ){
+//        for(int i=0; i<= 1000; i++ ){
+//            stepTest.add(i);
+//        }
+        for(int i=0; i< names.size(); i++ ){
             stepTest.add(i);
         }
         for (Integer date : stepTest) {
             steps.add(createStep(date));
         }
-
-        return jobBuilderFactory.get("executeMyJob121")
+        return jobBuilderFactory.get(this.jobName)
                 .start(createParallelFlow(steps))
                 .end()
                 .build();
     }
 
-    private Step createStep(Integer date){
-        return stepBuilderFactory.get("test_stop_001 : " + date)
+
+    private Step createStep(Integer index){
+        return stepBuilderFactory.get("test_stop : " + index)
                 .tasklet(new Tasklet() {
             @Override
             public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-                System.out.println("Hello World!");
+                System.out.println("Hello World! ["+index+"]");
                 return RepeatStatus.FINISHED;
             }
         }).build();
@@ -160,4 +170,15 @@ public class StepLoopConfiguration {
                 .add(flows.toArray(new Flow[flows.size()]))
                 .build();
     }
+
+    //    @Bean
+//    public JobRegistryBeanPostProcessor jobRegistrar() throws Exception {
+//        JobRegistryBeanPostProcessor registrar = new JobRegistryBeanPostProcessor();
+//
+//        registrar.setJobRegistry(this.jobRegistry);
+//        registrar.setBeanFactory(this.applicationContext.getAutowireCapableBeanFactory());
+//        registrar.afterPropertiesSet();
+//
+//        return registrar;
+//    }
 }

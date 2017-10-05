@@ -1,0 +1,18 @@
+spring:
+# db
+  datasource:
+    main:
+      platform: mysql
+      url: jdbc:mysql://localhost:3306/batch
+      username: batch
+      password: batch
+      driver-class-name: com.mysql.jdbc.Driver
+
+---
+#    other:
+#      platform: mysql
+#      url: jdbc:mysql://localhost/other-db
+#      username: root
+#      password:
+#      driverClassName: com.mysql.jdbc.Driver
+#
