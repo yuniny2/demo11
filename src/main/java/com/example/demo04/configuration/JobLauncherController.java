@@ -89,6 +89,10 @@ public class JobLauncherController {
     @RequestMapping(value = "/{jobName}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     public void stopJob(@PathVariable("jobName") String jobName) throws Exception {
+        //CASE1
+//        Set<Long> executions = jobOperator.getRunningExecutions(jobName);
+//        jobOperator.stop(executions.iterator().next());
+        //CASE2
         Set<JobExecution> executions = jobExplorer.findRunningJobExecutions(jobName);
         for(JobExecution execution : executions ){
             if (execution.getStatus() == BatchStatus.STARTED) {
