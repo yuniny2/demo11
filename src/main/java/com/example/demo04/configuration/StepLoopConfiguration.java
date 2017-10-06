@@ -52,15 +52,16 @@ public class StepLoopConfiguration {
     @Autowired
     public SampleIncrementer jobParametersIncrementer;
 
-    List<Map<String, Object>> names;
-    List<Step> steps = new ArrayList<>();
+    private List<Map<String, Object>> names;
+    private final List<Step> steps = new ArrayList<>();
     private final ConcurrentMap<String, Map<String, Step>> map = new ConcurrentHashMap<String, Map<String, Step>>();
-    final String jobName = "executeMyJob138";
+    private final String jobName = "executeMyJob138";
 
     @PostConstruct
     public List<Map<String, Object>> init() {
        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-       names = jdbcTemplate.queryForList("select name from name ");
+        names = jdbcTemplate.queryForList("select name from name ");
+
        return names;
     }
 

@@ -114,9 +114,14 @@ public class JobLauncherController {
 //    @RequestMapping("/test")
 //    public String handle() throws Exception {
 //        ApplicationContext context = new AnnotationConfigApplicationContext(StepLoopConfiguration.class);
+//        //method 이름이 Bean 이름
 //        Job job1 = context.getBean("executeMyJob", Job.class);
+//        Job job2 = context.getBean("executeMyJob", Job.class);
 //        job1.hashCode();
 //        job1.toString();
+//        System.out.println("job1--->"+job1);
+//        System.out.println("job2--->"+job2);
+//        boolean test = job1 == job2;
 //        return job1.toString();
 //    }
 
