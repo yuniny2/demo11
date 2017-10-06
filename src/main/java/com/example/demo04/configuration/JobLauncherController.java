@@ -49,7 +49,8 @@ public class JobLauncherController {
     public String reloadJob() throws Exception  {
         //[001]기존의 JobRegistry, StepRegistry 를 Lodd 하여 관련 Configuration 을 찾아 Reload
         DefaultJobLoader jobLoader = new DefaultJobLoader(jobRegistry, stepRegistry);
-        GenericApplicationContextFactory factory = new GenericApplicationContextFactory(StepLoopConfiguration.class);
+        //GenericApplicationContextFactory factory = new GenericApplicationContextFactory(StepLoopConfiguration.class);
+        ApplicationContextFactory factory = new GenericApplicationContextFactory(StepLoopConfiguration.class);
         jobLoader.reload(factory);
         return "RELOAD SUCCESS!!!";
     }
