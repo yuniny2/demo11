@@ -28,20 +28,22 @@ import static org.junit.Assert.assertEquals;
 @RestController
 public class JobLauncherController {
 
-    @Autowired //@Qualifier("JOB_LAUNCHER")
+    @Autowired
     JobLauncher jobLauncher;
-//    @Autowired @Qualifier("JOB3")
-//    Job job;
+
     @Autowired
     private JobRegistry jobRegistry;
+
     @Autowired @Qualifier("STEP_REGISTORY")
     private StepRegistry stepRegistry;
-    @Autowired //@Qualifier("JOB_OPERATOR")
+
+    @Autowired
     private JobOperator jobOperator;
+
     @Autowired
     private JobExplorer jobExplorer;
 
-    @Autowired //@Qualifier("JOB_REPOSOTORY")
+    @Autowired
     public JobRepository jobRepository;
 
     /**
@@ -100,31 +102,6 @@ public class JobLauncherController {
             }
         }
     }
-
-
-
-
-
-
-//    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-//    @ResponseStatus(HttpStatus.OK)
-//    public void stop(@PathVariable("id") Long id) throws Exception {
-//        this.jobOperator.stop(id);
-//    }
-
-    //JobLauncher 를 이용한 실행
-//    @RequestMapping("/test")
-//    public String handle() throws Exception {
-////        for(int i=0; i< 100; i++) {
-////            JobParameters param = new JobParametersBuilder().addLong("timestamp", new Date().getTime()).toJobParameters();
-//        JobParameters param = new JobParametersBuilder().addDate("date", new Date()).toJobParameters();
-//        //JobParameters param = new JobParametersBuilder().addDate("date", DateUtils.truncate(new Date(), Calendar.DATE)).toJobParameters();
-//        jobLauncher.run(job, param);
-////            jobLauncher.run(job, new JobParameters());
-//        //       }
-//        return "Done!!!-!!!!!";
-//    }
-
     //JobParameters jobParameters = new JobParameters();
     //JobParameters param = new JobParametersBuilder().addDate("date", new Date()).toJobParameters();
     //JobParameters param = new JobParametersBuilder().addDate("date", DateUtils.truncate(new Date(), Calendar.DATE)).toJobParameters();
