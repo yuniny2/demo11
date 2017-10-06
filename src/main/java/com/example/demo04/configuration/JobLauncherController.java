@@ -29,12 +29,12 @@ import static org.junit.Assert.assertEquals;
 public class JobLauncherController {
 
     @Autowired
-    JobLauncher jobLauncher;
+    private JobLauncher jobLauncher;
 
     @Autowired
     private JobRegistry jobRegistry;
 
-    @Autowired @Qualifier("STEP_REGISTORY")
+    @Autowired// @Qualifier("STEP_REGISTORY")
     private StepRegistry stepRegistry;
 
     @Autowired
