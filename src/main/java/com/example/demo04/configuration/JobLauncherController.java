@@ -8,10 +8,14 @@ import org.springframework.batch.core.configuration.support.*;
 import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.JobOperator;
+import org.springframework.batch.core.launch.support.SimpleJobLauncher;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +28,7 @@ import static org.junit.Assert.assertEquals;
 @RestController
 public class JobLauncherController {
 
-    @Autowired
+    @Autowired @Qualifier("JOBLAUNCHER")
     JobLauncher jobLauncher;
     @Autowired @Qualifier("JOB3")
     Job job;
@@ -37,6 +41,8 @@ public class JobLauncherController {
     @Autowired
     private JobExplorer jobExplorer;
 
+    @Autowired
+    public JobRepository jobRepository;
 
     @RequestMapping("/reload")
     public String reloadJob() throws Exception  {
@@ -53,6 +59,7 @@ public class JobLauncherController {
     @RequestMapping(value = "/", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.ACCEPTED)
     public String launch(@RequestParam("name") String jobName) throws Exception {
+        JobExecution jobExecution = null;
         try {
             //실행중인 job은 해당 이름에 end_time null 인경우 이다.
          Set<JobExecution> executions = jobExplorer.findRunningJobExecutions(jobName);
@@ -65,13 +72,14 @@ public class JobLauncherController {
         //JobParameters jobParameters = new JobParameters();
         JobParameters param = new JobParametersBuilder().addDate("date", new Date()).toJobParameters();
         //JobParameters param = new JobParametersBuilder().addDate("date", DateUtils.truncate(new Date(), Calendar.DATE)).toJobParameters();
-        jobLauncher.run(job, param);
+        jobExecution =jobLauncher.run(job, param);
+
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Something went wrong");
             return String.valueOf(e);
         }
-        return "Run!!!";
+        return String.valueOf(jobExecution);
     }
 
     //현재 running 중인 job을 종료

@@ -12,6 +12,7 @@ import org.springframework.batch.core.configuration.support.JobRegistryBeanPostP
 import org.springframework.batch.core.configuration.support.MapStepRegistry;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.explore.JobExplorer;
+import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.batch.core.job.builder.FlowBuilder;
 import org.springframework.batch.core.job.flow.Flow;
 import org.springframework.batch.core.job.flow.support.SimpleFlow;
@@ -35,7 +36,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.quartz.SimpleThreadPoolTaskExecutor;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
@@ -60,6 +64,8 @@ public class StepLoopConfiguration {
     public JobRegistry jobRegistry;
     @Autowired
     public JobLauncher jobLauncher;
+//    @Autowired
+//    public TaskExecutor taskExecutor;
     @Autowired
     @Qualifier("mainDataSource")
     public DataSource dataSource;
@@ -108,10 +114,13 @@ public class StepLoopConfiguration {
             return null;
         }
     }
-    @Bean
+    @Bean(name="JOBLAUNCHER")
     public JobLauncher jobLauncher(JobRepository jobRepository) {
+
         SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
+        TaskExecutor taskExecutor = new SyncTaskExecutor();
         jobLauncher.setJobRepository(jobRepository);
+        jobLauncher.setTaskExecutor(taskExecutor);
         return jobLauncher;
     }
     @Bean
@@ -138,10 +147,18 @@ public class StepLoopConfiguration {
         for (Integer date : stepTest) {
             steps.add(createStep(date));
         }
-        return jobBuilderFactory.get(this.jobName)
-                .start(createParallelFlow(steps))
-                .end()
-                .build();
+        //step 만 등록
+        SimpleJob job = new SimpleJob(this.jobName);
+        job.setJobRepository(this.jobRepository);
+        for(Step step : steps){
+            job.addStep(step);
+        }
+        return job;
+        //split flow 까지 등록
+//        return jobBuilderFactory.get(this.jobName)
+//                .start(createParallelFlow(steps))
+//                .end()
+//                .build();
     }
 
 
@@ -157,16 +174,16 @@ public class StepLoopConfiguration {
     }
 
     private Flow createParallelFlow(List<Step> steps) {
-        SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
+        SimpleAsyncTaskExecutor simpleAsyncTaskExecutor = new SimpleAsyncTaskExecutor();
         // max multithreading = -1, no multithreading = 1, smart size = steps.size()
-        taskExecutor.setConcurrencyLimit(1);
+        simpleAsyncTaskExecutor.setConcurrencyLimit(1);
 
         List<Flow> flows = steps.stream()
                 .map(step -> new FlowBuilder<Flow>("flow_" + step.getName()).start(step).build())
                 .collect(Collectors.toList());
 
         return new FlowBuilder<SimpleFlow>("parallelStepsFlow")
-                .split(taskExecutor)
+                .split(simpleAsyncTaskExecutor)
                 .add(flows.toArray(new Flow[flows.size()]))
                 .build();
     }
