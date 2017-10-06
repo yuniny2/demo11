@@ -1,5 +1,6 @@
 package com.example.demo04.configuration;
 
+import javafx.application.Application;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.batch.core.*;
@@ -12,6 +13,8 @@ import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -108,6 +111,14 @@ public class JobLauncherController {
         return result;
     }
 
+//    @RequestMapping("/test")
+//    public String handle() throws Exception {
+//        ApplicationContext context = new AnnotationConfigApplicationContext(StepLoopConfiguration.class);
+//        Job job1 = context.getBean("executeMyJob", Job.class);
+//        job1.hashCode();
+//        job1.toString();
+//        return job1.toString();
+//    }
 
     //JobParameters jobParameters = new JobParameters();
     //JobParameters param = new JobParametersBuilder().addDate("date", new Date()).toJobParameters();
