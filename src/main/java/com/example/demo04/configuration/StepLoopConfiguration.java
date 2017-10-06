@@ -11,6 +11,8 @@ import org.springframework.batch.core.job.SimpleJob;
 import org.springframework.batch.core.job.builder.FlowBuilder;
 import org.springframework.batch.core.job.flow.Flow;
 import org.springframework.batch.core.job.flow.support.SimpleFlow;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -21,6 +23,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
@@ -31,7 +35,7 @@ import java.util.stream.Collectors;
 
 @Configuration
 @EnableBatchProcessing
-@Import(value=DataSourceConfiguration.class)
+@Import(DataSourceConfiguration.class)
 public class StepLoopConfiguration {
 //    @Autowired
 //    private JobBuilderFactory jobBuilderFactory;
@@ -63,7 +67,17 @@ public class StepLoopConfiguration {
         registrar.setJobRegistry(jobRegistry);
         return registrar;
     }
-
+    @Bean(name="JOB_LAUNCHER")
+    public JobLauncher jobLauncher(JobRepository jobRepository) {
+        SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
+        //TaskExcutor 를 동기 또는 비동기로 변경 가능(설정을 안할시 동기라고 하나 Controller 에서 JobLauncher 를  Autowired 하면 기본 비동기)
+        //아래와 같이 동기로 설정하고 해당 Bean 을 Autowired 하면 동기로 설정됨.
+        TaskExecutor taskExecutor = new SyncTaskExecutor();
+        //TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
+        jobLauncher.setTaskExecutor(taskExecutor);
+        jobLauncher.setJobRepository(jobRepository);
+        return jobLauncher;
+    }
     @Bean
     public Job executeMyJob() {
         List<String> stepTest = new ArrayList<>();
