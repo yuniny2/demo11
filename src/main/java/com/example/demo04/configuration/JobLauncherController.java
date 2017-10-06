@@ -30,11 +30,11 @@ public class JobLauncherController {
 
     @Autowired //@Qualifier("JOB_LAUNCHER")
     JobLauncher jobLauncher;
-    @Autowired @Qualifier("JOB3")
-    Job job;
+//    @Autowired @Qualifier("JOB3")
+//    Job job;
     @Autowired
     private JobRegistry jobRegistry;
-    @Autowired //@Qualifier("STEP_REGISTORY")
+    @Autowired @Qualifier("STEP_REGISTORY")
     private StepRegistry stepRegistry;
     @Autowired //@Qualifier("JOB_OPERATOR")
     private JobOperator jobOperator;
@@ -44,31 +44,38 @@ public class JobLauncherController {
     @Autowired //@Qualifier("JOB_REPOSOTORY")
     public JobRepository jobRepository;
 
+    /**
+     * JobReload : 초기 STEP 의 DB 값으로 만든 dynamic STEP을 만들기 때문에 DB 값이 변경되면 STEP 도 변경시켜준다.
+     * @return
+     * @throws Exception
+     */
     @RequestMapping("/reload")
     public String reloadJob() throws Exception  {
-        //JobRegistry jobRegistry = new MapJobRegistry();
-        //StepRegistry stepRegistry = new MapStepRegistry();
+        //[001]기존의 JobRegistry, StepRegistry 를 Lodd 하여 관련 Configuration 을 찾아 Reload
         DefaultJobLoader jobLoader = new DefaultJobLoader(jobRegistry, stepRegistry);
         GenericApplicationContextFactory factory = new GenericApplicationContextFactory(StepLoopConfiguration.class);
         jobLoader.reload(factory);
-        return "RELOAD SUCCESS";
+        return "RELOAD SUCCESS!!!";
     }
 
+    /**
+     * Job 을 실행시킨다. 반드시 Job job = jobRegistry.getJob(jobName); 가져와야 reload 된 job 이 실행된다.
+     * @param jobName
+     * @return
+     * @throws Exception
+     */
     @RequestMapping(value = "/", method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.ACCEPTED)
     public String launch(@RequestParam("name") String jobName) throws Exception {
         JobExecution jobExecution = null;
         try {
-            //실행중인 job은 해당 이름에 end_time null 인경우 이다.
-         Set<JobExecution> executions = jobExplorer.findRunningJobExecutions(jobName);
-          if(executions.size() > 0 ) return "Already Job is running";
-
-        //Configuration에 JobResisty 를 등록 한후 사용
-        Job job = jobRegistry.getJob(jobName);
-        //JobParameters jobParameters = new JobParameters();
-        JobParameters param = new JobParametersBuilder().addDate("date", new Date()).toJobParameters();
-        //JobParameters param = new JobParametersBuilder().addDate("date", DateUtils.truncate(new Date(), Calendar.DATE)).toJobParameters();
-        jobExecution =jobLauncher.run(job, param);
+            //[FACT]실행중인 job은 해당 이름에 end_time null 인경우 이다.
+            Set<JobExecution> executions = jobExplorer.findRunningJobExecutions(jobName);
+            if(executions.size() > 0 ) return "Already Job is running";
+            //[002]JobRegistory에 등록된 JOB 을 가져온다. : JobRegistry 에서 가져오지 않을 경우 reload 된 JOB이 호출되지 않음
+            Job job = jobRegistry.getJob(jobName);
+            JobParameters param = new JobParametersBuilder().addDate("date", new Date()).toJobParameters();
+            jobExecution =jobLauncher.run(job, param);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -78,7 +85,11 @@ public class JobLauncherController {
         return String.valueOf(jobExecution);
     }
 
-    //현재 running 중인 job을 종료
+    /**
+     * 현재 running 중이 job 종료
+     * @param jobName
+     * @throws Exception
+     */
     @RequestMapping(value = "/{jobName}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
     public void stopJob(@PathVariable("jobName") String jobName) throws Exception {
@@ -91,6 +102,10 @@ public class JobLauncherController {
     }
 
 
+
+
+
+
 //    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
 //    @ResponseStatus(HttpStatus.OK)
 //    public void stop(@PathVariable("id") Long id) throws Exception {
@@ -98,15 +113,19 @@ public class JobLauncherController {
 //    }
 
     //JobLauncher 를 이용한 실행
-    @RequestMapping("/test")
-    public String handle() throws Exception {
-//        for(int i=0; i< 100; i++) {
-//            JobParameters param = new JobParametersBuilder().addLong("timestamp", new Date().getTime()).toJobParameters();
-        JobParameters param = new JobParametersBuilder().addDate("date", new Date()).toJobParameters();
-        //JobParameters param = new JobParametersBuilder().addDate("date", DateUtils.truncate(new Date(), Calendar.DATE)).toJobParameters();
-        jobLauncher.run(job, param);
-//            jobLauncher.run(job, new JobParameters());
-        //       }
-        return "Done!!!-!!!!!";
-    }
+//    @RequestMapping("/test")
+//    public String handle() throws Exception {
+////        for(int i=0; i< 100; i++) {
+////            JobParameters param = new JobParametersBuilder().addLong("timestamp", new Date().getTime()).toJobParameters();
+//        JobParameters param = new JobParametersBuilder().addDate("date", new Date()).toJobParameters();
+//        //JobParameters param = new JobParametersBuilder().addDate("date", DateUtils.truncate(new Date(), Calendar.DATE)).toJobParameters();
+//        jobLauncher.run(job, param);
+////            jobLauncher.run(job, new JobParameters());
+//        //       }
+//        return "Done!!!-!!!!!";
+//    }
+
+    //JobParameters jobParameters = new JobParameters();
+    //JobParameters param = new JobParametersBuilder().addDate("date", new Date()).toJobParameters();
+    //JobParameters param = new JobParametersBuilder().addDate("date", DateUtils.truncate(new Date(), Calendar.DATE)).toJobParameters();
 }

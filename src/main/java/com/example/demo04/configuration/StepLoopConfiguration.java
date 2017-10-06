@@ -52,20 +52,19 @@ import java.util.stream.Collectors;
 @EnableBatchProcessing
 @Import(value=DataSourceConfiguration.class)
 public class StepLoopConfiguration {
-    @Autowired
-    private JobBuilderFactory jobBuilderFactory;
+//    @Autowired
+//    private JobBuilderFactory jobBuilderFactory;
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
-    @Autowired
-    public JobExplorer jobExplorer;
+//    @Autowired
+//    public JobExplorer jobExplorer;
     @Autowired
     public JobRepository jobRepository;
-    @Autowired
-    public JobRegistry jobRegistry;
-    @Autowired
-    public JobLauncher jobLauncher;
 //    @Autowired
-//    public TaskExecutor taskExecutor;
+//    public JobRegistry jobRegistry;
+//    @Autowired
+//    public JobLauncher jobLauncher;
+
     @Autowired
     @Qualifier("mainDataSource")
     public DataSource dataSource;
@@ -82,59 +81,23 @@ public class StepLoopConfiguration {
        return names;
     }
 
-    @Bean//(name="STEP_REGISTORY")
-    public StepRegistry setStepRegistry() {
-        StepRegistry stepRegistry = new MapStepRegistry();
-        final Map<String, Step> jobSteps = new HashMap<>();
-        for (Step step : steps) {
-            jobSteps.put(step.getName(), step);
-        }
-        final Object previousValue = map.putIfAbsent(jobName, jobSteps);
-//        if (previousValue != null) {
-//            throw new DuplicateJobException("A job configuration with this name [ " + this.jobName
-//                    + "] was already registered");
-//        }
-        return stepRegistry;
-    }
-
     @Bean
     JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor(JobRegistry jobRegistry) {
         JobRegistryBeanPostProcessor registrar = new JobRegistryBeanPostProcessor();
         registrar.setJobRegistry(jobRegistry);
         return registrar;
     }
-    @Bean(name="JOB_REPOSOTORY")
-    public JobRepository jobRepository() {
-        MapJobRepositoryFactoryBean factoryBean = new MapJobRepositoryFactoryBean(new ResourcelessTransactionManager());
-        try {
-            JobRepository jobRepository = factoryBean.getObject();
-            return jobRepository;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-    @Bean//(name="JOB_LAUNCHER")
-    public JobLauncher jobLauncher(JobRepository jobRepository) {
 
-        SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
-       // TaskExecutor taskExecutor = new SyncTaskExecutor();
-        TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
-        jobLauncher.setJobRepository(jobRepository);
-        jobLauncher.setTaskExecutor(taskExecutor);
-        return jobLauncher;
-    }
-    @Bean//(name="JOB_OPERATOR")
-    public JobOperator jobOperator() throws Exception {
-        SimpleJobOperator simpleJobOperator = new SimpleJobOperator();
-        simpleJobOperator.setJobLauncher(this.jobLauncher);
-        simpleJobOperator.setJobParametersConverter(new DefaultJobParametersConverter());
-        simpleJobOperator.setJobRepository(this.jobRepository);
-        simpleJobOperator.setJobExplorer(this.jobExplorer);
-        simpleJobOperator.setJobRegistry(this.jobRegistry);
-        simpleJobOperator.afterPropertiesSet();
-        return simpleJobOperator;
-    }
+//    @Bean(name="JOB_LAUNCHER")
+//    public JobLauncher jobLauncher(JobRepository jobRepository) {
+//        SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
+//        //TaskExcutor 를 동기 또는 비동기로 변경 가능(설정을 안할시 동기 (SyncTaskExecutor)로 설정)
+//        //TaskExecutor taskExecutor = new SyncTaskExecutor();
+//        //TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
+//        //jobLauncher.setTaskExecutor(taskExecutor);
+//        jobLauncher.setJobRepository(jobRepository);
+//        return jobLauncher;
+//    }
 
     @Bean(name="JOB3")
     public Job executeMyJob() {
@@ -162,17 +125,54 @@ public class StepLoopConfiguration {
 //                .build();
     }
 
-
     private Step createStep(Integer index){
         return stepBuilderFactory.get("test_stop : " + index)
                 .tasklet(new Tasklet() {
-            @Override
-            public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-                System.out.println("Hello World! ["+index+"]");
-                return RepeatStatus.FINISHED;
-            }
-        }).build();
+                    @Override
+                    public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
+                        System.out.println("Hello World! ["+index+"]");
+                        return RepeatStatus.FINISHED;
+                    }
+                }).build();
     }
+
+    @Bean(name="STEP_REGISTORY")
+    public StepRegistry setStepRegistry() {
+        StepRegistry stepRegistry = new MapStepRegistry();
+        final Map<String, Step> jobSteps = new HashMap<>();
+        for (Step step : steps) {
+            jobSteps.put(step.getName(), step);
+        }
+        final Object previousValue = map.putIfAbsent(jobName, jobSteps);
+//        if (previousValue != null) {
+//            throw new DuplicateJobException("A job configuration with this name [ " + this.jobName + "] was already registered");
+//        }
+        return stepRegistry;
+    }
+
+//    @Bean(name="JOB_OPERATOR")
+//    public JobOperator jobOperator() throws Exception {
+//        SimpleJobOperator simpleJobOperator = new SimpleJobOperator();
+//        simpleJobOperator.setJobLauncher(this.jobLauncher);
+//        simpleJobOperator.setJobParametersConverter(new DefaultJobParametersConverter());
+//        simpleJobOperator.setJobRepository(this.jobRepository);
+//        simpleJobOperator.setJobExplorer(this.jobExplorer);
+//        simpleJobOperator.setJobRegistry(this.jobRegistry);
+//        simpleJobOperator.afterPropertiesSet();
+//        return simpleJobOperator;
+//    }
+
+//    @Bean(name="JOB_REPOSOTORY")
+//    public JobRepository jobRepository() {
+//        MapJobRepositoryFactoryBean factoryBean = new MapJobRepositoryFactoryBean(new ResourcelessTransactionManager());
+//        try {
+//            JobRepository jobRepository = factoryBean.getObject();
+//            return jobRepository;
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return null;
+//        }
+//    }
 
     private Flow createParallelFlow(List<Step> steps) {
         SimpleAsyncTaskExecutor simpleAsyncTaskExecutor = new SimpleAsyncTaskExecutor();
@@ -189,7 +189,7 @@ public class StepLoopConfiguration {
                 .build();
     }
 
-    //    @Bean
+//    @Bean
 //    public JobRegistryBeanPostProcessor jobRegistrar() throws Exception {
 //        JobRegistryBeanPostProcessor registrar = new JobRegistryBeanPostProcessor();
 //
