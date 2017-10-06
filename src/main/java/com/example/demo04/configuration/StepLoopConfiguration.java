@@ -83,15 +83,17 @@ public class StepLoopConfiguration {
         return registrar;
     }
 
-    @Bean(name="JOB3")
+    @Bean
     public Job executeMyJob() {
-        List<Integer> stepTest = new ArrayList<>();
+        List<String> stepTest = new ArrayList<>();
         for(int i=0; i< names.size(); i++ ){
-            stepTest.add(i);
+            stepTest.add(names.get(i).toString());
         }
-        for (Integer date : stepTest) {
-            steps.add(createStep(date));
-        }
+        int i = 1;
+        for (String name : stepTest) {
+            steps.add(createStep(name+" :: "+i));
+            i++;
+       }
         //step 만 등록
         SimpleJob job = new SimpleJob(this.jobName);
         job.setJobRepository(this.jobRepository);
@@ -106,12 +108,12 @@ public class StepLoopConfiguration {
 //                .build();
     }
 
-    private Step createStep(Integer index){
-        return stepBuilderFactory.get("test_stop : " + index)
+    private Step createStep(String name){
+        return stepBuilderFactory.get("test_stop : ["+ name.toString()+"]")
                 .tasklet(new Tasklet() {
                     @Override
                     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-                        System.out.println("Hello World! ["+index+"]");
+                        System.out.println("Hello World! ["+name+"]");
                         return RepeatStatus.FINISHED;
                     }
                 }).build();
