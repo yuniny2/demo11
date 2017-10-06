@@ -1,5 +1,6 @@
 package com.example.demo04.configuration;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.JobRegistry;
@@ -88,7 +89,8 @@ public class JobLauncherController {
      */
     @RequestMapping(value = "/{jobName}", method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.OK)
-    public void stopJob(@PathVariable("jobName") String jobName) throws Exception {
+    public String stopJob(@PathVariable("jobName") String jobName) throws Exception {
+        String result = "Running JOB IS Nothing!";
         //CASE1
 //        Set<Long> executions = jobOperator.getRunningExecutions(jobName);
 //        jobOperator.stop(executions.iterator().next());
@@ -97,8 +99,12 @@ public class JobLauncherController {
         for(JobExecution execution : executions ){
             if (execution.getStatus() == BatchStatus.STARTED) {
                 jobOperator.stop(execution.getId());
+                return jobName+" JOB IS STOPPED!";
+            } else {
+                return result;
             }
         }
+        return result;
     }
 
 
