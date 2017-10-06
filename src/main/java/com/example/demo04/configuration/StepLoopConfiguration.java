@@ -54,7 +54,7 @@ public class StepLoopConfiguration {
 
     //private List<Map<String, Object>> names;
     private final List<Step> steps = new ArrayList<>();
-    private final ConcurrentMap<String, Map<String, Step>> map = new ConcurrentHashMap<String, Map<String, Step>>();
+    private final ConcurrentMap<String, Map<String, Step>> map = new ConcurrentHashMap<>();
     private final String jobName = "executeMyJob138";
 
     @PostConstruct
@@ -127,7 +127,7 @@ public class StepLoopConfiguration {
         for (Step step : steps) {
             jobSteps.put(step.getName(), step);
         }
-        final Object previousValue = map.putIfAsent(jobName, jobSteps);
+        final Object previousValue = map.putIfAbsent(jobName, jobSteps);
 //        if (previousValue != null) {
 //            throw new DuplicateJobException("A job configuration with this name [ " + this.jobName + "] was already registered");
 //        }
