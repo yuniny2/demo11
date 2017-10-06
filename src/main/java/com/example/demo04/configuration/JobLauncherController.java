@@ -1,5 +1,6 @@
 package com.example.demo04.configuration;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.StepRegistry;
@@ -13,13 +14,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Set;
 
 @RestController
 public class JobLauncherController {
 
-    @Autowired @Qualifier("JOB_LAUNCHER")
+    @Autowired// @Qualifier("JOB_LAUNCHER")
     private JobLauncher jobLauncher;
 
     @Autowired
@@ -68,6 +70,7 @@ public class JobLauncherController {
             //[002]JobRegistory에 등록된 JOB 을 가져온다. : JobRegistry 에서 가져오지 않을 경우 reload 된 JOB이 호출되지 않음
             Job job = jobRegistry.getJob(jobName);
             JobParameters param = new JobParametersBuilder().addDate("date", new Date()).toJobParameters();
+            //JobParameters param = new JobParametersBuilder().addDate("date", DateUtils.truncate(new Date(), Calendar.DATE)).toJobParameters();
             jobExecution =jobLauncher.run(job, param);
 
         } catch (Exception e) {
@@ -93,6 +96,8 @@ public class JobLauncherController {
             }
         }
     }
+
+
     //JobParameters jobParameters = new JobParameters();
     //JobParameters param = new JobParametersBuilder().addDate("date", new Date()).toJobParameters();
     //JobParameters param = new JobParametersBuilder().addDate("date", DateUtils.truncate(new Date(), Calendar.DATE)).toJobParameters();

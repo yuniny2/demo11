@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 @Configuration
 @EnableBatchProcessing
-@Import(DataSourceConfiguration.class)
+@Import({DataSourceConfiguration.class, SampleIncrementer.class})
 public class StepLoopConfiguration {
 //    @Autowired
 //    private JobBuilderFactory jobBuilderFactory;
@@ -48,6 +48,9 @@ public class StepLoopConfiguration {
     @Autowired
     @Qualifier("mainDataSource")
     public DataSource dataSource;
+
+    @Autowired
+    public SampleIncrementer jobParametersIncrementer;
 
     List<Map<String, Object>> names;
     List<Step> steps = new ArrayList<>();
@@ -67,17 +70,18 @@ public class StepLoopConfiguration {
         registrar.setJobRegistry(jobRegistry);
         return registrar;
     }
-    @Bean(name="JOB_LAUNCHER")
-    public JobLauncher jobLauncher(JobRepository jobRepository) {
-        SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
-        //TaskExcutor 를 동기 또는 비동기로 변경 가능(설정을 안할시 동기라고 하나 Controller 에서 JobLauncher 를  Autowired 하면 기본 비동기)
-        //아래와 같이 동기로 설정하고 해당 Bean 을 Autowired 하면 동기로 설정됨.
-        TaskExecutor taskExecutor = new SyncTaskExecutor();
-        //TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
-        jobLauncher.setTaskExecutor(taskExecutor);
-        jobLauncher.setJobRepository(jobRepository);
-        return jobLauncher;
-    }
+
+//    @Bean(name="JOB_LAUNCHER")
+//    public JobLauncher jobLauncher(JobRepository jobRepository) {
+//        SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
+//        //TaskExcutor 를 동기 또는 비동기로 변경 가능(설정을 안할시 동기라고 하나 Controller 에서 JobLauncher 를  Autowired 하면 기본 비동기)
+//        //아래와 같이 동기로 설정하고 해당 Bean 을 Autowired 하면 동기로 설정됨.
+//        TaskExecutor taskExecutor = new SyncTaskExecutor();
+//        //TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
+//        jobLauncher.setTaskExecutor(taskExecutor);
+//        jobLauncher.setJobRepository(jobRepository);
+//        return jobLauncher;
+//    }
     @Bean
     public Job executeMyJob() {
         List<String> stepTest = new ArrayList<>();
@@ -92,6 +96,7 @@ public class StepLoopConfiguration {
         //step 만 등록
         SimpleJob job = new SimpleJob(this.jobName);
         job.setJobRepository(this.jobRepository);
+        job.setJobParametersIncrementer(this.jobParametersIncrementer);
         for(Step step : steps){
             job.addStep(step);
         }
@@ -141,4 +146,6 @@ public class StepLoopConfiguration {
                 .add(flows.toArray(new Flow[flows.size()]))
                 .build();
     }
+
+
 }
