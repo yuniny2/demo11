@@ -52,7 +52,7 @@ public class StepLoopConfiguration {
     @Autowired
     public SampleIncrementer jobParametersIncrementer;
 
-    private List<Map<String, Object>> names;
+    //private List<Map<String, Object>> names;
     private final List<Step> steps = new ArrayList<>();
     private final ConcurrentMap<String, Map<String, Step>> map = new ConcurrentHashMap<String, Map<String, Step>>();
     private final String jobName = "executeMyJob138";
@@ -60,7 +60,7 @@ public class StepLoopConfiguration {
     @PostConstruct
     public List<Map<String, Object>> init() {
        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-        names = jdbcTemplate.queryForList("select name from name ");
+        List<Map<String, Object>> names = jdbcTemplate.queryForList("select name from name ");
 
        return names;
     }
@@ -86,8 +86,8 @@ public class StepLoopConfiguration {
     @Bean
     public Job executeMyJob() {
         List<String> stepTest = new ArrayList<>();
-        for(int i=0; i< names.size(); i++ ){
-            stepTest.add(names.get(i).toString());
+        for(int i=0; i< init().size(); i++ ){
+            stepTest.add(init().get(i).toString());
         }
         int i = 1;
         for (String name : stepTest) {
@@ -127,7 +127,7 @@ public class StepLoopConfiguration {
         for (Step step : steps) {
             jobSteps.put(step.getName(), step);
         }
-        final Object previousValue = map.putIfAbsent(jobName, jobSteps);
+        final Object previousValue = map.putIfAsent(jobName, jobSteps);
 //        if (previousValue != null) {
 //            throw new DuplicateJobException("A job configuration with this name [ " + this.jobName + "] was already registered");
 //        }
